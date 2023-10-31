@@ -1,1 +1,2 @@
 --fil for CTRL
+--test for å se at det fungerer
