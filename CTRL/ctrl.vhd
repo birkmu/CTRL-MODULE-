@@ -22,13 +22,10 @@ end entity ctrl;
 architecture RTL of ctrl is
  -------------------------------------------------------------------------------
  -- Constants
- signal txConfig : std_logic_vector(7 downto 0);
-  signal txData : std_logic_vector(7 downto 0);
-  signal txStatus : std_logic_vector(7 downto 0);
-  signal sendCharacter : std_logic := '0'; -- This signal is used to control character transmission
-  signal characterSent : std_logic := '0'; -- This signal indicates when a character has been sent
  -------------------------------------------------------------------------------
  --Konstanter som trengs
+    
+ 
  
  -------------------------------------------------------------------------------
  -- Types
