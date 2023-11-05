@@ -20,13 +20,20 @@ entity ctrl is
 end entity ctrl; 
 
 architecture RTL of ctrl is
-   -------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------
  -- Konstanter
  ------------------------------------------------------------------------------- 
   constant charA : std_logic_vector(7 downto 0) := "01000001"; --'A'
   constant startbit : std_logic := "1"; --Startbitet usikker om det skal være avhengig av parity
-  
-  
+  constant Tellevariabel : integer := 2500000; -- teller så mange klokkefrekvenser som tilsvarer 50ms
+ -------------------------------------------------------------------------------
+ -- Signaler
+ ------------------------------------------------------------------------------- 
+  signal counter : integer := 2500000; --Tellevariabel for varigheten til LED lyset. 
+  --Lager en variabel for knappen som brukes til å sjekke når knapp-verdien går fra
+  --1 til 0. Slik at datainnholdet endres kun når knappen blir trykket og ikke presset
+  signal key_prev_state : std_logic := '1';
+  signal paritybit : std_logic;
  -------------------------------------------------------------------------------
  -- Funkjson
  -------------------------------------------------------------------------------
@@ -60,49 +67,40 @@ function calculate_parity(data: std_logic_vector; modus: std_logic_vector) retur
     end function calculate_parity;
   
 begin 
-  process(key)
+  process(clk, rstn_n)
   begin 
+    if rst_n = '0' then
+      LED <= '0';
+	   RD <= '1'; 
+      WR <= '0';
+		
+  --Kjører koden hvis rst_n ikke er '0'
+	 elsif rising_edge(clk) then
+      if key = '0' and key_prev_state = '1' then
+		  --Da endres verdien på datainnholdet -> data skal sendes og led skal lyse
+		  Data <= charA;
+		  
+		  RD <= '0';
+		  WR <= '1';
+		  
+		  paritybit <= calculate_parity(Data, parity); -- Regner ut paritybit
+		  
+		  --Starter tellinga til varigheten på LED
+		  counter <= '0';
+		end if;
+		key_prev_state <= key; 
+	 end if;
+		
   
-  
-  --Må endres på senere, har bare skrevet ned logikken siden jeg allerede skrev ferdig funksjonen
-  --Antar at det også skal legges til startbit som er '1'
-	 if key = '1' then
-      TxData(7 downto 0) <= charA;
-		TxData(8) <= calculate_parity(charA, parity); -- Regner ut paritybit
-		--Antar at man må ha med startbit? 
-		TxData(8 downto 1) <= charA;
-		TxData(8 downto 1) <= charA;
-      TxData(9) <= calculate_parity(charA, parity); -- Regner ut paritybit
-    end if;
-  
-  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+  --Teller varigheten til LED
+    if counter < TARGET_COUNT then
+      counter <= counter + 1; 
+      led <= '1'; -- LED PÅ gjennom tellinga
+    else
+       led <= '0'; -- LED AV etter tellinga
+    
+	 
+	 end if;
  
  
  
