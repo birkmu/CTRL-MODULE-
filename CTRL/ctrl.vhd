@@ -25,11 +25,11 @@ architecture RTL of ctrl is
  ------------------------------------------------------------------------------- 
   constant charA : std_logic_vector(7 downto 0) := "01000001"; --'A'
   constant startbit : std_logic := "1"; --Startbitet usikker om det skal være avhengig av parity
-  constant Tellevariabel : integer := 2500000; -- teller så mange klokkefrekvenser som tilsvarer 50ms
+  constant TARGET_COUNT : integer := 2500000; -- teller så mange klokkefrekvenser som tilsvarer 50ms
  -------------------------------------------------------------------------------
  -- Signaler
  ------------------------------------------------------------------------------- 
-  signal counter : integer := 2500000; --Tellevariabel for varigheten til LED lyset. 
+  signal counter : integer range 0 to TARGET_COUNT; --Tellevariabel for varigheten til LED lyset. 
   --Lager en variabel for knappen som brukes til å sjekke når knapp-verdien går fra
   --1 til 0. Slik at datainnholdet endres kun når knappen blir trykket og ikke presset
   signal key_prev_state : std_logic := '1';
@@ -70,12 +70,15 @@ begin
   process(clk, rstn_n)
   begin 
     if rst_n = '0' then
-      LED <= '0';
-	   RD <= '1'; 
-      WR <= '0';
+      LED <= '0'; -- default 0
+	   RD <= '0'; --default 0
+      WR <= '0'; -- default 0
+		counter <= TARGET_COUNT;
 		
   --Kjører koden hvis rst_n ikke er '0'
 	 elsif rising_edge(clk) then
+	 
+	 
       if key = '0' and key_prev_state = '1' then
 		  --Da endres verdien på datainnholdet -> data skal sendes og led skal lyse
 		  Data <= charA;
