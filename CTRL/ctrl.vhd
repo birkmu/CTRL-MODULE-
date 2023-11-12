@@ -87,9 +87,10 @@ begin
 		end if;
 		key_prev_state <= key; 
 
-		
-		if Data(0) /= 'Z' then --sjekker når det første bitet i data er ulik 'tristate'
-        RD <= '1'; --Forteller at Ctrl modulen er nødt til å lese datainnholdet.   		
+		--Er lat, orker ikke å lage en funksjon som sjekker om alle bitene er "tristate"
+		--Så sjekker kun det første. 
+		if Data(0) /= 'Z' then 
+        RD <= '1'; --Forteller at Ctrl modulen er nødt til å lese datainnholdet. Fordi da er det data i databussen.  		
 		end if
 		
 		if RD = '1' and WR = '0' then --Sjekker om at Tx ikke er i "sender fasen"
