@@ -37,7 +37,9 @@ architecture RTL of ctrl is
  -------------------------------------------------------------------------------
  -- Funkjson
  -------------------------------------------------------------------------------
---Funksjonen tar inn 2 'variabler' den ene som er dataen den skal sjekke enere på 
+--Skal kanskje være i Tx-modulen, men ser ikke grunn til å fjerne den nå.
+ 
+ --Funksjonen tar inn 2 'variabler' den ene som er dataen den skal sjekke enere på 
 --og den andre blir "modus" altså parity som sier om den skal legge til parity partall/odde
 function calculate_parity(data: std_logic_vector; modus: std_logic_vector) return std_logic is
 		  variable count : natural := 0; --Tellevariabel som starter på '0'
@@ -73,27 +75,39 @@ begin
       LED <= '0'; -- default 0
 	   RD <= '0'; --default 0
       WR <= '0'; -- default 0
-		counter <= TARGET_COUNT;
+		Data <= (others => 'Z'); --Dette skal sette hele data til "tristate"?
+		counter <= TARGET_COUNT; 
 		
   --Kjører koden hvis rst_n ikke er '0'
 	 elsif rising_edge(clk) then
 	 
-	 
       if key = '0' and key_prev_state = '1' then
 		  --Da endres verdien på datainnholdet -> data skal sendes og led skal lyse
 		  Data <= charA;
-		  
-		  RD <= '0';
-		  WR <= '1';
-		  
+		end if;
+		key_prev_state <= key; 
+
+		
+		if Data(0) /= 'Z' then --sjekker når det første bitet i data er ulik 'tristate'
+        RD <= '1'; --Forteller at Ctrl modulen er nødt til å lese datainnholdet.   		
+		end if
+		
+		if RD = '1' and WR = '0' then --Sjekker om at Tx ikke er i "sender fasen"
+		  --Skal lese data og gjøre det klar til sending for Tx-modulen
+		  TxData <= Data; 
 		  paritybit <= calculate_parity(Data, parity); -- Regner ut paritybit
 		  
 		  --Starter tellinga til varigheten på LED
 		  counter <= '0';
-		end if;
-		key_prev_state <= key; 
-	 end if;
+		  WR <= '1'; --Forteller til Tx at data kan sendes.  
+		end if
 		
+		if WR = '1' then
+		  Data <= (others => 'Z'); --Setter hele data til "tristate"?
+		  RD = '0'; 
+		end if
+	 end if;
+	 
   
   --Teller varigheten til LED
     if counter < TARGET_COUNT then
@@ -102,9 +116,6 @@ begin
     else
        led <= '0'; -- LED AV etter tellinga
     
-	 
 	 end if;
- 
- 
  
  end architecture Ctrl;
