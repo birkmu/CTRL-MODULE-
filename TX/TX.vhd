@@ -31,7 +31,7 @@ architecture RTL of TX is
 	signal TxData : std_logic_vector(7 downto 0);
 
 begin
-	process_1 : process (clk, rstn) is
+	state_machine_pros : process (clk, rstn) is
 		variable count_trnsf : integer;
 	begin
 		if rstn = '0' then 
@@ -90,9 +90,9 @@ begin
 				end if;
 		end case;
 		
-	end process process_1;	
+	end process state_machine_pros;	
 
-	process_2 : process(clk, rstn) is
+	set_busy_flag_pros : process(clk, rstn) is
 	begin
 		if rstn = '0' then
 			buss <= (others => 'Z');
@@ -103,6 +103,6 @@ begin
 				buss <= (others => 'Z');
 			end if;
 		end if;
-	end process process_2;
+	end process set_busy_flag_pros;
 
 end architecture RTL;
