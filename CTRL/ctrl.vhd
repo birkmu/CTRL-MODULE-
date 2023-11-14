@@ -14,7 +14,7 @@ entity ctrl is
     ADR : out std_logic_vector(4 downto 0); -- 
     RD : out std_logic;
 	 WR : out std_logic;
-	 Data inout std_logic_vector(7 downto 0); -- Tristate (‘Z’) etter data har blitt sendt.
+	 buss inout std_logic_vector(7 downto 0); -- Tristate (‘Z’) etter data har blitt sendt.
 
  );
 end entity ctrl; 
@@ -75,7 +75,8 @@ begin
       LED <= '0'; -- default 0
 	   RD <= '0'; --default 0
       WR <= '0'; -- default 0
-		Data <= (others => 'Z'); --Dette skal sette hele data til "tristate"?
+		buss <= (others => 'Z'); --Dette skal sette hele data til "tristate"?
+		--data <= (others => 'Z'); --Dette skal sette hele data til "tristate"?
 		counter <= TARGET_COUNT; 
 		
   --Kjører koden hvis rst_n ikke er '0'
@@ -83,20 +84,22 @@ begin
 	 
       if key = '0' and key_prev_state = '1' then
 		  --Da endres verdien på datainnholdet -> data skal sendes og led skal lyse
-		  Data <= charA;
+		  --Data <= charA;
+		  buss <= charA;
+		
 		end if;
 		key_prev_state <= key; 
 
 		--Er lat, orker ikke å lage en funksjon som sjekker om alle bitene er "tristate"
 		--Så sjekker kun det første. 
-		if Data(0) /= 'Z' then 
+		if buss(0) /= 'Z' then 
         RD <= '1'; --Forteller at Ctrl modulen er nødt til å lese datainnholdet. Fordi da er det data i databussen.  		
 		end if
 		
 		if RD = '1' and WR = '0' then --Sjekker om at Tx ikke er i "sender fasen"
 		  --Skal lese data og gjøre det klar til sending for Tx-modulen
-		  TxData <= Data; 
-		  paritybit <= calculate_parity(Data, parity); -- Regner ut paritybit
+		  TxData <= buss; 
+		  paritybit <= calculate_parity(TxData, parity); -- Regner ut paritybit
 		  
 		  --Starter tellinga til varigheten på LED
 		  counter <= '0';
@@ -104,7 +107,8 @@ begin
 		end if
 		
 		if WR = '1' then
-		  Data <= (others => 'Z'); --Setter hele data til "tristate"?
+		  buss <= (others => 'Z'); --Setter hele data til "tristate"?
+		  --Data <= (others => 'Z'); --Setter hele data til "tristate"?
 		  RD = '0'; 
 		end if
 	 end if;
