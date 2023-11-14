@@ -28,10 +28,7 @@ architecture RTL of TX is
 	signal parity_set : std_logic_vector(1 downto 0);
 	signal parity_calc : std_logic;
 	signal baudrate : std_logic_vector(2 downto 0);
-
-	signal TxConfig : std_logic_vector(7 downto 0);
 	signal TxData : std_logic_vector(7 downto 0);
-	signal TxStatus : std_logic_vector(7 downto 0); --- disse settes av CTRL
 
 begin
 	process_1 : process (clk, rstn) is
@@ -94,5 +91,18 @@ begin
 		end case;
 		
 	end process process_1;	
+
+	process_2 : process(clk, rstn) is
+	begin
+		if rstn = '0' then
+			buss <= (others => 'Z');
+		elsif rising_edge(clk) then
+			if (RD = '1' and adr = "00010") then --- konstandt for adr
+				buss <= "0000000" & busy;
+			else
+				buss <= (others => 'Z');
+			end if;
+		end if;
+	end process process_2;
 
 end architecture RTL;
