@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity Ctrl_tb is
+entity TX_tb is
 end entity;
 
 
@@ -48,7 +48,7 @@ begin
    -----------------------------------------------------------------------------
    -- Component instantiations
    -----------------------------------------------------------------------------
-	i_Ctrl: component Ctrl
+	i_TX: component TX
 		port map (
 			clk  => clk_tb,
 			rstn => rstn_tb,
