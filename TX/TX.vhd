@@ -34,59 +34,63 @@ architecture RTL of TX is
 	signal TxStatus : std_logic_vector(7 downto 0); --- disse settes av CTRL
 
 begin
-	process_1 : process (all) is
+	process_1 : process (clk, rstn) is
 		variable count_trnsf : integer;
 	begin
+		if rstn = '0' then 
+			-- sette alt man tilordner nedenunder til startverdi
+			count_trnsf := 0; 
+		elsif rising_edge(clk) then
+			-- innrykk alt under
 		case state_machine is
 			when config =>
-				if (WR = '1' and ADR = "00000" and TxData = not "ZZZZZZZZ") then 
+				if (WR = '1' and ADR = "00000") then -- adr som egen constant (txconfig, txdata og txstatus)
+					--tilordne txconfig. de tre siste bit lagres i buadrate, feks. 
+					baudrate <= buss(2 downto 0);
+					-- gjør det samme med paritet
+					parity_set <= buss(4 downto 3);
 					state_machine <= waiting;
 				end if; 
 				
 			when waiting =>
-				if (WR = '1' and ADR = "00001" and Txdata = not "ZZZZZZZZ") then
+				busy <= '0';
+				if (WR = '1' and ADR = "00001") then
+					TxData <= buss;
+					busy <= '1';
 					state_machine <= start;
 				end if;
 			when start =>
 				if count_out = '1' then
 					TxD <= '0';
-					TxD <= 'Z';
 					state_machine <= transfer;
 				end if;
 
 			when transfer =>
-				count_trnsf := 0;
-					if count_out = '1' then
-						TxD <= TxData(0 + count_trnsf);
-						TxD <= 'Z';
+				if count_out = '1' then
+					TxD <= TxData(count_trnsf);
+					if count_trnsf = 7 then
+						count_trnsf := '0';
+						if parity_set = ("01" or "10")  then
+							state_machine <= parity;
+						else 
+							state_machine <= stop;
+						end if;
+					else 
 						count_trnsf := count_trnsf + 1;
 					end if;
-				if TxConfig(4 downto 3) = ("01" or "10")  then --- pass på rikitg komboer (ev. 3 to 4)
-					state_machine <= parity;
-				else 
-					state_machine <= stop;
 				end if;
-				
+
 			when parity =>
 				if count_out = '1' then
-					if TxConfig(4 downto 3) = "01" then
-						parity_set <= "01";
-						TxD <= parity_calc;
-						TxD <= 'Z';
-					elsif TxConfig(4 downto 3) = "10" then
-						parity_set <= "10";
-						TxD <= parity_calc;
-						TxD <= 'Z';
-					end if;
+					TxD <= parity_calc;
+					state_machine <= stop;
 				end if;
-				state_machine <= stop;
-				
+
 			when stop =>
 				if count_out = '1' then
 					TxD <= '1';
-					TxD <= 'Z';
+					state_machine <= waiting;
 				end if;
-				state_machine <= waiting;
 		end case;
 		
 	end process process_1;	
