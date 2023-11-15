@@ -105,7 +105,7 @@ state_machine: process
 	WR_tb   <= '0';
 	buss_tb <= (others => 'Z');
 
-	wait 1 ms; -- mindre om man bare vil teste tilstandsmaskin uten baudrate
+	wait for 1 ms; -- mindre om man bare vil teste tilstandsmaskin uten baudrate
 	assert false report "Testbench finished" severity failure;
 
    end process state_machine;
