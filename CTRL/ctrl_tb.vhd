@@ -22,10 +22,10 @@ architecture Sim of Ctrl_tb is
 			clk  : in std_logic;
 			rstn : in std_logic;
 			buss : inout std_logic_vector(7 downto 0);
-			adr  : in std_logic_vector(4 downto 0);
-			WR   : in std_logic;
-			RD   : in std_logic;
-			TxD  : out std_logic);
+			adr  : out std_logic_vector(4 downto 0);
+			WR   : out std_logic;
+			RD   : out std_logic;
+			LED  : out std_logic);
 
 	end component Ctrl;
 

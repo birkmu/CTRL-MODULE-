@@ -26,9 +26,16 @@ architecture RTL of ctrl is
   constant charA : std_logic_vector(7 downto 0) := "01000001"; --'A'
   constant startbit : std_logic := "1"; --Startbitet usikker om det skal være avhengig av parity
   constant TARGET_COUNT : integer := 2500000; -- teller så mange klokkefrekvenser som tilsvarer 50ms
+  constant TxconfigADR : std_logic(4 downto 0) := "00000"; 
+  constant TxStatusADR : std_logic(4 downto 0) := "00010";
+  constant TxDataADR : std_logic(4 downto 0) := "00001";
+  type statetype is (config, waitkey, sjekkstatus); 
+ 
+ 
  -------------------------------------------------------------------------------
  -- Signaler
  ------------------------------------------------------------------------------- 
+  signal tilstand : statetype; 
   signal counter : integer range 0 to TARGET_COUNT; --Tellevariabel for varigheten til LED lyset. 
   --Lager en variabel for knappen som brukes til å sjekke når knapp-verdien går fra
   --1 til 0. Slik at datainnholdet endres kun når knappen blir trykket og ikke presset
@@ -72,7 +79,8 @@ begin
   process(clk, rstn_n)
   begin 
     if rst_n = '0' then
-      LED <= '0'; -- default 0
+      tilstand <= statetype'left;
+		LED <= '0'; -- default 0
 	   RD <= '0'; --default 0
       WR <= '0'; -- default 0
 		buss <= (others => 'Z'); --Dette skal sette hele data til "tristate"?
@@ -81,14 +89,53 @@ begin
 		
   --Kjører koden hvis rst_n ikke er '0'
 	 elsif rising_edge(clk) then
-	 
+	   WR <= '0';
+		RD <= '0';
+		ADR <= (others => '0');
+		buss <= (others => 'Z');
+		key_prev_state <= key;
+		
+		case tilstand is 
+		  when config => 
+		    WR <= '1';
+			 ADR <= TxconfigADR;
+			 buss <= "000" & parity & baudsel; 
+		    tilstand <= waitkey;
+		  when waitkey =>
+		    if key = '0' and key_prev_state = '1' then
+			   counter <= '0';
+				RD <= '1'; 
+				ADR <= TxstatusADR;
+				tilstand <= sjekkstatus;
+			 end if;
+		  when sjekkstatus => --Sjekke busy flag
+		    
+		
+		  when ---- =>
+		
+		
+		
+		end case; 
+			 
+			 
+			 
+			 
+			 
+		  --Da endres verdien på datainnholdet -> data skal sendes og led skal lyse
+		  --Data <= charA;
+		    buss <= charA;
+		
+			 
+		   
+			 
+			 
       if key = '0' and key_prev_state = '1' then
 		  --Da endres verdien på datainnholdet -> data skal sendes og led skal lyse
 		  --Data <= charA;
 		  buss <= charA;
 		
 		end if;
-		key_prev_state <= key; 
+		 
 
 		--Er lat, orker ikke å lage en funksjon som sjekker om alle bitene er "tristate"
 		--Så sjekker kun det første. 
